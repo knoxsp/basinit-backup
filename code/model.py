@@ -5,6 +5,9 @@ log = logging.getLogger(__name__)
 
 from datetime import datetime
 
+from HydraLib import config
+import zlib
+
 class JSONObject(dict):
     """
         A dictionary object whose attributes can be accesed via a '.'.
@@ -85,3 +88,51 @@ class JSONObject(dict):
             return str(self.properties)
         else:
             return None
+
+ 
+class Dataset(JSONObject):
+    def parse_value(self):
+        """
+            Turn the value of an incoming dataset into a hydra-friendly value.
+        """
+        try:
+            #attr_data.value is a dictionary,
+            #but the keys have namespaces which must be stripped.
+
+
+            if self.value is None:
+                log.warn("Cannot parse dataset. No value specified.")
+                return None
+
+            data = str(self.value)
+
+            if len(data) > 100:
+                log.debug("Parsing %s", data[0:100])
+            else:
+                log.debug("Parsing %s", data)
+
+            if self.type == 'descriptor':
+                return data
+            elif self.type == 'scalar':
+                return data
+            elif self.type == 'timeseries':
+                timeseries_pd = pd.read_json(data)
+
+                #Epoch doesn't work here because dates before 1970 are not
+                # supported in read_json. Ridiculous.
+                ts = timeseries_pd.to_json(date_format='iso', date_unit='ns')
+                if len(data) > int(config.get('db', 'compression_threshold', 1000)):
+                    return zlib.compress(ts)
+                else:
+                    return ts
+            elif self.type == 'array':
+                #check to make sure this is valid json
+                json.loads(data)
+                if len(data) > int(config.get('db', 'compression_threshold', 1000)):
+                    return zlib.compress(data)
+                else:
+                    return data
+        except Exception, e:
+            log.exception(e)
+            raise HydraError("Error parsing value %s: %s"%(self.value, e))
+
