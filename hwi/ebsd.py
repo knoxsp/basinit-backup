@@ -9,9 +9,9 @@ import datetime
 
 import os
 
-from code import scenario_utilities as scenarioutils
-from code import attr_utilities as attrutils
-from code import network_utilities as netutils
+from hydrautils import scenario_utilities as scenarioutils
+from hydrautils import attr_utilities as attrutils
+from hydrautils import network_utilities as netutils
 
 from werkzeug.exceptions import InternalServerError
 

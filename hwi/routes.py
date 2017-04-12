@@ -16,25 +16,25 @@ import sys
 import datetime
 import urllib2
 
-from code.run_hydra_app import *
+from hydrautils.run_hydra_app import *
 
 basefolder = os.path.dirname(__file__)
 
 from HydraServer.lib.objects import JSONObject, ResourceScenario
 
-from code.app_utilities import delete_files_from_folder, create_zip_file, get_apps_properties
+from hydrautils.app_utilities import delete_files_from_folder, create_zip_file, get_apps_properties
 
-import code.project_utilities as projutils
-import code.network_utilities as netutils
-import code.attr_utilities as attrutils
-import code.template_utilities as tmplutils
-import code.dataset_utilities as datasetutils
-import code.scenario_utilities as scenarioutils
-import code.user_utilities as userutils
+import hydrautils.project_utilities as projutils
+import hydrautils.network_utilities as netutils
+import hydrautils.attr_utilities as attrutils
+import hydrautils.template_utilities as tmplutils
+import hydrautils.dataset_utilities as datasetutils
+import hydrautils.scenario_utilities as scenarioutils
+import hydrautils.user_utilities as userutils
 
-from code.export_network import export_network_to_pywr_json, export_network_to_excel, export_network_to_csv
+from hydrautils.export_network import export_network_to_pywr_json, export_network_to_excel, export_network_to_csv
 
-from code.import_network import import_network_from_csv_files, import_network_from_excel, import_network_from_pywr_json
+from hydrautils.import_network import import_network_from_csv_files, import_network_from_excel, import_network_from_pywr_json
 
 from . import app, appinterface, requires_login
 

@@ -1,0 +1,2 @@
+recursive-include hwi/templates *
+recursive-include hwi/static *

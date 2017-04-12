@@ -11,7 +11,7 @@ import requests
 
 from HydraLib import config
 
-import code.dataset_utilities as datasetutils
+import hydrautils.dataset_utilities as datasetutils
 
 from werkzeug.exceptions import InternalServerError
 
