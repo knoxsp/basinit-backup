@@ -1,5 +1,33 @@
 var current_solution = null;
 
+$(document).on('click', '#export-to-polyvis', function(){
+
+    $("#export-to-polyvis .fa-spin").removeClass('hidden')
+    $("#export-to-polyvis .polyvis-icon").addClass('hidden')
+
+    var success = function(resp){
+        $("#export-to-polyvis .fa-spin").addClass('hidden')
+        $("#export-to-polyvis .polyvis-icon").removeClass('hidden')
+        window.open(resp, "_blank");
+    }
+
+    var error = function(resp){
+        $("#export-to-polyvis .fa-spin").addClass('hidden')
+        $("#export-to-polyvis .polyvis-icon").removeClass('hidden')
+        console.log(resp)
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: export_to_polyvis_url,
+        data: JSON.stringify({'scenario_id':scenario_id}), 
+        type: 'post',
+        success: success,
+        error: error
+    })
+    
+})
+
 $(document).on('show.bs.modal', '#load-ebsd-data-modal', function(){
     $('#load-ebsd-data-modal input[name=scenario_id]').val(scenario_id);
     $('#load-ebsd-data-modal .alert').remove()

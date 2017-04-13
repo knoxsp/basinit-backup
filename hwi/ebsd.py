@@ -4,7 +4,7 @@ import os
 import copy
 import json
 from . import app
-from flask import request, jsonify, abort, session, send_from_directory
+from flask import request, jsonify, abort, session, send_from_directory, redirect
 import datetime
 
 import os
@@ -22,6 +22,15 @@ from . import appinterface
 
 
 from HydraServer.db import commit_transaction, rollback_transaction
+from HydraLib import config
+
+import requests
+
+import logging
+log = logging.getLogger(__name__)
+
+global POLYVIS_URL
+POLYVIS_URL = config.get('polyvis', 'POLYVIS_URL', 'http://polyvis.org/')
 
 @app.route('/upload_ebsd_data', methods=['POST'])
 def do_upload_ebsd_data():
@@ -37,7 +46,7 @@ def do_upload_ebsd_data():
     user_id = session['user_id']
     
     if data == '' or len(data) == 0:
-        app.logger.critical('No data sent')
+        log.critical('No data sent')
         return jsonify({"Error" : "No Data Found"}), 400
     
     if len(request.files) > 0:
@@ -61,7 +70,7 @@ def do_upload_ebsd_data():
     
     commit_transaction()
 
-    app.logger.info("File read successfully")
+    log.info("File read successfully")
 
     return jsonify({'status': 'OK', 'message': 'Data saved successfully'})
 
@@ -74,18 +83,19 @@ def do_get_ebsd_results(scenario_id, solution_id):
 
         if no result id is provided to an mga scenario, an exception is thrown
     """
-    app.logger.info("Generating excel file...")
+    log.info("Generating excel file...")
 
     user_id = session['user_id']
 
     scenario = scenarioutils.get_scenario(scenario_id, user_id)
-    app.logger.info("Scenario Retrieved")
+    log.info("Scenario Retrieved")
 
     flow_df, cols = _get_flow_data(scenario, solution_id)
 
     wrz_dfs = _get_balance_data(scenario, solution_id, cols)
     
     folder = os.tempnam()
+    os.mkdir(folder)
     outputname = 'EBSD_Results_%s_%s.xlsx'%(scenario.scenario_name, solution_id)
     location = os.path.join(folder, outputname)
 
@@ -101,9 +111,9 @@ def do_get_ebsd_results(scenario_id, solution_id):
 
     writer.save()
     
-    app.logger.info("File export complete.")
+    log.info("File export complete.")
     
-    return send_from_directory(location, as_attachment=True)
+    return send_from_directory(folder, outputname, as_attachment=True)
 
 def _get_balance_data(scenario, solution_id, cols):
     n = scenario.network
@@ -213,7 +223,7 @@ def _make_balance_df(wrz_data, cols):
                 xl_df[c, i][('Existing Imports', nodename)] = df[c][i]
 
     for nodename in wrz_data['out']:
-        df = wrz_data['out'][linkname]
+        df = wrz_data['out'][nodename]
         for c in df.columns:
             for i in df.index:
                 xl_df[c, i][('Existing Exports', nodename)] = df[c][i]
@@ -302,7 +312,7 @@ def _get_selected_options(wrz, ra_dict, solution_id):
     return selected
 
 def _get_flow_data(scenario, solution_id):
-    app.logger.info('Getting Flow Data')
+    log.info('Getting Flow Data')
 
     flows = {}
     flow_attr_id = None
@@ -331,7 +341,7 @@ def _get_flow_data(scenario, solution_id):
                 jn_attr_id = a.attr_id
                 link_jns[ra.link.link_name] = rs.dataset.value
 
-    app.logger.info("Flow data extracted")
+    log.info("Flow data extracted")
     flow_dfs = {}
     sample_df = None
     for linkname in flows:
@@ -342,7 +352,7 @@ def _get_flow_data(scenario, solution_id):
         try:
             all_results = json.loads(flows[linkname])
         except:
-            app.logger.critical(flows[linkname])
+            log.critical(flows[linkname])
             raise Exception("Flow value on link %s is not valid. Unable to parse JSON."%(linkname))
 
         result = all_results.get(str(solution_id))
@@ -362,7 +372,7 @@ def _get_flow_data(scenario, solution_id):
             if sample_df is None or (len(val.index) > len(sample_df.index)):
                 sample_df = val
 
-    app.logger.info("Flow data converted to dataframes")
+    log.info("Flow data converted to dataframes")
 
     linknames = flow_dfs.keys()
 
@@ -399,7 +409,7 @@ def _process_data_file(data_file, network_id, scenario_id, user_id):
 
         returns a dictionary of values, keyed on WRZ name
     """
-    app.logger.info('Processing data file %s', data_file.filename)
+    log.info('Processing data file %s', data_file.filename)
 
     xl_df = pd.read_excel(data_file, sheetname=None)
 
@@ -442,7 +452,7 @@ def _process_data_file(data_file, network_id, scenario_id, user_id):
     #sub-val = hasahtable value, with scenario columns, time indices.
     attributes = {}
     for scenarioname, scenario_df in xl_df.items():
-        app.logger.info("Processing scenario %s", scenarioname)
+        log.info("Processing scenario %s", scenarioname)
         if wrzs is None:
             #Get the unique wrz names
             wrzs = set(scenario_df['WRZ'])
@@ -452,7 +462,7 @@ def _process_data_file(data_file, network_id, scenario_id, user_id):
                 try:
                     wrz_nodes.append(netutils.get_resource_by_name(network_id, 'NODE', w.lower(), user_id))
                 except ResourceNotFoundError, e:
-                    app.logger.warn('WRZ %s not found', w)
+                    log.warn('WRZ %s not found', w)
         
         for rowname in scenario_df.index:
             row = scenario_df.ix[rowname]
@@ -561,3 +571,243 @@ def run_ebsd_model():
                               })
 
     return jsonify(job_id)
+
+
+@app.route('/export_to_polyvis', methods=['GET', 'POST'])
+def do_export_to_polyvis():
+    """
+        Pass a multi-soluton scenario (produced by MGA for example) into polyvis,
+        Finds all results of type 'MGA', from the same attribute and condenses them
+        into a single value (taking 'DYAA' aas the default scenario if they'yre nested hashtables')
+        re-formatting it into a csv structure.
+        Return a URL generated by polyvis and redirect to that URL
+    """
+    log.info('Exoorting to polyvis...')
+    if len(request.args) > 0:
+        scenario_id = int(request.args['scenario_id'])
+    else:
+        args = json.loads(request.get_data())
+        scenario_id = args['scenario_id']
+    user_id = session['user_id']
+
+    log.info("Setting up lookup dicts")
+    all_attributes = attrutils.get_all_attributes() 
+
+    attr_id_map = {}
+    reverse_attr_id_map = {}
+
+    for a in all_attributes:
+        attr_id_map[a.attr_name] = a.attr_id
+        reverse_attr_id_map[a.attr_id] = a.attr_name
+
+    scenario = scenarioutils.get_scenario(scenario_id, user_id)
+
+    ra_dict = {'NODE':{}, 'LINK': {}, 'GROUP':{}, 'NETWORK':{}}
+    rs_map = {}
+    for rs in scenario.resourcescenarios:
+        ra = rs.resourceattr
+        resource_id = rs.resourceattr.get_resource_id()
+        if ra_dict[ra.ref_key].get(resource_id) is None:
+            ra_dict[ra.ref_key][resource_id] = {ra.resource_attr_id:rs}
+        else:
+            ra_dict[ra.ref_key][resource_id][ra.resource_attr_id] = rs
+        
+        rs_map[rs.resource_attr_id] = rs
+
+    #Get the cost attribute on the network to identify all the solutions:
+    network = scenario.network
+    for ra in network.attributes:
+        if reverse_attr_id_map[ra.attr_id].lower() == 'cost':
+            costval = rs_map[ra.resource_attr_id].dataset.value
+
+
+    if costval is None:
+        raise Exception("Could not find a 'cost' value on the network.")
+    
+    soln_dict = {}
+    #Found the cost value, now parse it and pick out all the solution IDS.
+    try:
+        costval = eval(costval)
+        solution_ids = costval.keys()
+        for k, v in costval.items():
+            #int-ify the solution id for nicer sorting.
+            try:
+                k = int(k)
+            except:
+                pass
+            soln_dict[k] = {'cost':v}
+    except Exception, e:
+        log.exception(e)
+        raise Exception("The value %s does not apper to contain valid solution ids. "
+                        "Please ensure it is a json serialisable hashtable,"
+                        " where the keys are solution IDS and the values are costs."%costval)
+    
+    json_vals = {'cost': costval}
+
+    calculated_metric_names = [
+        'BALANCE',
+        'AVAILABLE_DO',
+        'DI_THR_DATA',
+        'TOTAL_EXISTING_IMPORT',
+        'TOTAL_EXISTING_EXPORT',
+    ]
+
+    calculated_metric_ids = []
+    for cm in calculated_metric_names:
+        calculated_metric_ids.append(attr_id_map[cm])
+
+    all_metrics = calculated_metric_ids
+     
+    log.info('Exporting scenario %s to polyvis', scenario_id)
+
+    #A dict, keyed on node ID, containing its 'selected' status for each solution.
+    #We'll parse and move the approproate things around afterwards
+    selected_dict = {}
+    for n in network.nodes:
+        if n.types[0].templatetype.type_name == 'demand':
+            selected_options = _get_selected_nodes(n, ra_dict)
+            selected_dict.update(selected_options)  
+    
+    #Dict keyed on wrz name, containing sub-dicts describing such things as
+    #the in links and out links and attributes 
+    log.info("Setting up metric lookup dictionaries for nodes & links")
+    all_attr_values = {}
+    for n in network.nodes:
+
+        for ra in n.attributes:
+            if ra.attr_id in all_metrics:
+
+                attr_name = reverse_attr_id_map[ra.attr_id]
+                rs = rs_map.get(ra.resource_attr_id)
+                if rs is None:
+                    log.warn('No value found for %s on node %s', attr_name, n.node_name)
+                    continue
+                
+                value = rs.dataset
+                if all_attr_values.get(attr_name):
+                    all_attr_values[attr_name].append(value)
+                else:
+                    all_attr_values[attr_name] = [value]
+
+    for l in network.links:
+        for ra in l.attributes:
+            if ra.attr_id in all_metrics:
+
+                attr_name = reverse_attr_id_map[ra.attr_id]
+                rs = rs_map.get(ra.resource_attr_id)
+                if rs is None:
+                    log.warn('No value found for %s on node %s', attr_name, l.link_name)
+                    continue
+                value = rs.dataset
+                if all_attr_values.get(attr_name):
+                    all_attr_values[attr_name].append(value)
+                else:
+                    all_attr_values[attr_name] = [value]
+    
+    #transpose the data so it's now keyed on solution ID.
+    #Each solution's value should either be a scalar (ex: cost) or a hashtable
+    #We generate a single number by summing the average of the 'DYAA' columns
+    #for each attribute, if it's a hashtable.
+    target_col = 'DYAA'
+    
+    log.info('Populating the solution dictionary with the metric attributes')
+    for attr_name, values in all_attr_values.items():
+        for dataset in values:
+            try:
+                json_val = json.loads(dataset.value)
+                for soln_id, solnval in json_val.items():
+                    soln_df = pd.read_json(json.dumps(solnval)).transpose()
+                    if target_col not in soln_df.columns:
+                        continue
+
+                    attrsum = soln_df[target_col].sum()
+
+                    #Try to int-ify the solution identifier as it'll provide a more nicely sorted csv file.
+                    try:
+                        soln_id = int(soln_id)
+                    except:
+                        pass
+
+                    if soln_dict[soln_id].get(attr_name):
+                        soln_dict[soln_id][attr_name] = soln_dict[soln_id][attr_name] + attrsum
+                    else:
+                        soln_dict[soln_id][attr_name] = attrsum
+                
+            except Exception, e:
+                log.exception(e)
+                log.warn('%s: %s', attr_name, dataset.value[:100])
+                return e
+
+    log.info('Populating the solution dictionary with the selected options')
+    for selectednode, values in selected_dict.items():
+        values = eval(values)
+        for solution_id, value in values.items():
+            try:
+                solution_id = int(solution_id)
+            except:
+                pass
+
+            if not value or len(value) == 0:
+                soln_dict[solution_id][selectednode] = 0
+            else:
+                soln_dict[solution_id][selectednode] = 1
+
+    log.info("Converting solution data to a dataframe.") 
+    soln_df = pd.read_json(json.dumps(soln_dict)).transpose()
+
+    csv_text = soln_df.to_csv()
+
+    log.info("Saving file.") 
+    f = open('/tmp/df.txt', 'w+')
+    f.writelines(csv_text)
+    f.flush()
+
+    f = open('/tmp/df.txt', 'r')
+
+    client = requests.session()
+
+    # Retrieve the CSRF token first
+    client.get(POLYVIS_URL)  # sets cookie
+    csrftoken = client.cookies['csrftoken']
+
+    resp = client.post(POLYVIS_URL+'upload_parallel_data',
+                       files={'csv':f},
+                       data={'csrfmiddlewaretoken':csrftoken},
+                       headers=dict(Referer=POLYVIS_URL))
+    log.info("Polyvis URL generated. Returning %s", resp.url) 
+    return resp.url
+
+
+def _get_selected_nodes(wrz, ra_dict):
+    selected = {}
+
+    inlinks = wrz.links_from
+    outlinks = wrz.links_to
+
+    for l in inlinks:
+        attributes = ra_dict['LINK'].get(l.link_id, {})
+        for ra_id in attributes:
+            rs = attributes[ra_id]
+            ra = rs.resourceattr
+            if ra.attr.attr_name == 'AL':
+                if len(rs.dataset.value) == 0:
+                    continue
+                val = rs.dataset.value
+                if not val or val == 'NULL':
+                    continue
+                selected[l.node_a.node_name] = val 
+
+    for l in outlinks:
+        attributes = ra_dict['LINK'].get(l.link_id, {})
+        for ra_id in attributes:
+            rs = attributes[ra_id]
+            ra = rs.resourceattr
+            if ra.attr.attr_name == 'AL':
+                if len(rs.dataset.value) == 0:
+                    continue
+                val = rs.dataset.value
+                if not val or val == 'NULL':
+                    continue
+                selected[l.node_b.node_name] = val 
+
+    return selected

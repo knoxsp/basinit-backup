@@ -34,7 +34,6 @@ def do_export_to_polyvis():
     value = dataset.value
 
     json_val = json.loads(value)
-    
 
     data = {}
     for k, v in json_val.items():
