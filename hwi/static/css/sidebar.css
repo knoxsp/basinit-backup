@@ -112,8 +112,8 @@ text-overflow: ellipsis;
     margin: 0 0.25rem 0.25rem 0.25rem;
 }
 .jobstatus .icon{
-    padding-right: 10px;
-    margin-left: 15px;
+    padding-right: 3px;
+    margin-left: 13px;
 }
 .jobstatus.queued{
     background-color: #fcf8e3;
@@ -137,4 +137,11 @@ text-overflow: ellipsis;
 }
 .jobstatus{
     width: 100%;
+}
+.jobstatus .delete-job:hover{
+    color:red !important;
+}
+
+.jobstatus .restart-job:hover{
+    color:blue !important;
 }

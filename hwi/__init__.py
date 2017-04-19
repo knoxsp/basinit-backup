@@ -4,7 +4,7 @@ from flask import Flask
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from HydraServer.db import model
-from HydraLib import config
+from HydraLib import config as hydraconfig
 from wtforms import PasswordField
 import os
 import bcrypt
@@ -25,6 +25,8 @@ basefolder = os.path.dirname(__file__)
 
 app = Flask(__name__)
 
+app.config.from_object('hwi.config')
+#app.config.from_envvar('HWI_SETTINGS')
 
 def requires_login(func):
     @wraps(func)
@@ -62,7 +64,7 @@ def requires_login(func):
     return wrapped
 
 #For use by the admin app, as it can't use zope transactions 
-db_url = config.get('mysqld', 'url')
+db_url = hydraconfig.get('mysqld', 'url')
 engine = create_engine(db_url) 
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,

@@ -30,7 +30,7 @@ import logging
 log = logging.getLogger(__name__)
 
 global POLYVIS_URL
-POLYVIS_URL = config.get('polyvis', 'POLYVIS_URL', 'http://polyvis.org/')
+POLYVIS_URL = app.config.get('POLYVIS_URL', 'http://polyvis.org/')
 
 @app.route('/upload_ebsd_data', methods=['POST'])
 def do_upload_ebsd_data():
@@ -61,12 +61,13 @@ def do_upload_ebsd_data():
     network_id = scenario.network_id
 
     _process_data_file(data_file, network_id, scenario_id, user_id)
+    upload_dir = app.config['UPLOAD_DIR']
 
-    if not os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'] , 'datafiles')):
-        os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'] , 'datafiles'))
+    if not os.path.exists(os.path.join(upload_dir , 'datafiles')):
+        os.mkdir(os.path.join(upload_dir , 'datafiles'))
     
     now = datetime.datetime.now().strftime('%Y%m%d%H%M')
-    data_file.save(os.path.join(app.config['UPLOAD_FOLDER'] , 'datafiles' , now+'_'+data_file.filename))
+    data_file.save(os.path.join(upload_dir , 'datafiles' , now+'_'+data_file.filename))
     
     commit_transaction()
 
@@ -524,7 +525,7 @@ def _process_data_file(data_file, network_id, scenario_id, user_id):
                         resource_attr_id = a.resource_attr_id,
                         value =dict(
                             name      = 'EBSD dataset from file %s' % (data_file.filename),
-                            type      =  'descriptor',        
+                            type      =  'array',        
                             value     = json.dumps(val),
                             metadata  =  {'type': 'hashtable_seasonal', "sub_key": "SCENARIO", "key": "yr"}
                         )

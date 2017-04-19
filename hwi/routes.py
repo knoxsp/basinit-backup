@@ -40,16 +40,6 @@ from . import app, appinterface, requires_login
 
 from HydraServer.db import commit_transaction, rollback_transaction, DBSession
 
-global DATA_FOLDER
-DATA_FOLDER = 'python/HydraServer/ui/data'
-
-UPLOAD_FOLDER = os.path.realpath(os.path.join(DATA_FOLDER, 'uploaded_files'))
-TEMPLATE_FOLDER = 'hydra_templates'
-ALLOWED_EXTENSIONS = set(['zip'])
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['TEMPLATE_FOLDER'] = TEMPLATE_FOLDER
-app.config['DATA_FOLDER'] = DATA_FOLDER
-
 
 # 'server/'
 @app.route('/')
@@ -889,7 +879,8 @@ def appstatus(task_id):
 @requires_login
 def import_uploader():
     uploaded_file=None
-    basefolder = os.path.join(os.path.dirname(os.path.realpath(__file__)), UPLOAD_FOLDER)
+    upload_dir = app.config['UPLOAD_DIR']
+    basefolder = os.path.join(os.path.dirname(os.path.realpath(__file__)), upload_dir)
     extractedfolder = os.path.join(basefolder, 'temp')
     if not os.path.exists(extractedfolder):
         os.makedirs(extractedfolder)
@@ -963,7 +954,9 @@ def import_uploader():
 
 
 def import_app(network_id, scenario_id, app_name):
-    basefolder = os.path.join(os.path.dirname(os.path.realpath(__file__)), UPLOAD_FOLDER)
+
+    upload_dir = app.config['UPLOAD_DIR']
+    basefolder = os.path.join(os.path.dirname(os.path.realpath(__file__)), upload_dir)
     directory = os.path.join(basefolder, 'temp')
     app.logger.info("ex_pywr: ", basefolder)
     delete_files_from_folder(directory)
