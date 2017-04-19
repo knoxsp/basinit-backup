@@ -342,6 +342,10 @@ $(document).on('click', '#clone-scenario-button', function(e){
         $("#clone-scenario select option[value="+new_scenario.scenario_id+"]").attr('selected','selected');
         $('#clone_scenario_modal .selectpicker').selectpicker('refresh');
 
+        $("#run-ebsd-modal select").append("<option value='"+new_scenario.scenario_id+"'>"+new_scenario.scenario_name+"</option>")
+        $("#run-ebsd-modal select option[value="+new_scenario.scenario_id+"]").attr('selected','selected');
+        $('#run-ebsd-modal .selectpicker').selectpicker('refresh');
+
         $("#scenario-picker").append("<option value='"+new_scenario.scenario_id+"'>"+new_scenario.scenario_name+"</option>")
         $("#scenario-picker option[value="+new_scenario.scenario_id+"]").attr('selected','selected');
         $('#sidebar_container .selectpicker').selectpicker('refresh');
