@@ -100,6 +100,7 @@ $(document).on('click', '#run-ebsd-model-button', function(){
     var form_data = new FormData($('#run-ebsd-model-form')[0])
    // data.append('scenario_id', $('#load-ebsd-data-form input[name=scenario_id]').val())
    // data.append('data_file', $('#load-ebsd-data-form input[name=data_file]').val())
+   form_data.append('scenario_name', scenario_name_lookup[scenario_id])
 
     $.ajax({
         type: 'POST',

@@ -5,6 +5,7 @@ from HydraServer.lib.objects import JSONObject
 from network_utilities import get_resource
 import pandas as pd
 import logging
+import zlib
 import json
 log = logging.getLogger(__name__)
 
@@ -30,6 +31,10 @@ def get_resource_data(network_id, scenario_id, resource_type, res_id, user_id):
         if len(rs.dataset.metadata) > 0:
             m = rs.dataset.get_metadata_as_dict()
             v = res_scenarios[attr_id].dataset.value 
+            try:
+                v = zlib.decompress(v)
+            except:
+                pass
             res_scenarios[attr_id].dataset.value = _transform_value(v, m)
 
     resource = get_resource(resource_type, res_id, user_id)
@@ -127,6 +132,11 @@ def get_resource_scenario(resource_attr_id, scenario_id, user_id):
     return jsonrs 
 
 def _transform_value(value, metadata, reverse=False):
+    try:
+        value = zlib.decompress(value)
+    except:
+        pass
+
     if metadata.get('data_type') == 'hashtable_seasonal' or metadata.get('type') == 'hashtable_seasonal':
         try:
             if reverse is True:

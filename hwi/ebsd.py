@@ -556,6 +556,8 @@ def run_ebsd_model():
 
     app_id = request.values['app_id']
     network_id = request.values['network_id']
+    scenario_name = request.values.get('scenario_name')
+    network_name = request.values.get('network_name')
     scenario_id = request.values.getlist('scenario_id')
     default_model_file =  os.path.join(os.path.expanduser('~'), 'EBSD.gms')
     model_file = os.environ.get('EBSD_MODEL', default_model_file)
@@ -565,6 +567,8 @@ def run_ebsd_model():
                               network_id,
                               s_id,
                               session['user_id'],
+                              scenario_name=scenario_name,
+                              network_name=network_name,
                               options={
                                   'gams-model':model_file,
                                   'session_id': session['session_id'],
@@ -760,7 +764,7 @@ def do_export_to_polyvis():
 
     log.info("Saving file.") 
     f = open('/tmp/df.txt', 'w+')
-    f.writelines(csv_text)
+    f.writelines('ID' + csv_text)
     f.flush()
 
     f = open('/tmp/df.txt', 'r')

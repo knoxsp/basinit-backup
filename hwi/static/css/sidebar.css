@@ -107,7 +107,6 @@ text-overflow: ellipsis;
 }
 
 .jobstatus{
-    padding: 5px;
     border-radius: .25rem;
     margin: 0 0.25rem 0.25rem 0.25rem;
 }
@@ -145,3 +144,20 @@ text-overflow: ellipsis;
 .jobstatus .restart-job:hover{
     color:blue !important;
 }
+
+#refresh-jobs{
+    cursor: pointer;
+    float: right;
+    padding-right: 20px;
+}
+#refresh-jobs:hover{
+    color: #f7f5d7;
+}
+
+.jobstatus .name{
+    display: inline-block;
+    width: 109px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
