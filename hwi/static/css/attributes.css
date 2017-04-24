@@ -28,6 +28,7 @@
 
 .ts_outer{
     position:relative;
+    overflow: hidden;
 }
 .ts_inner{
     position:relative;
@@ -35,6 +36,11 @@
 
 .ts_inner svg{
     position:relative;
+}
+
+#ts-edit-inner{
+    overflow: scroll;
+    max-width: 500px;
 }
 
 .attr_name{

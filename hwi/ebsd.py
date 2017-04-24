@@ -553,7 +553,7 @@ def run_ebsd_model():
     correspond to a 'name' of a mandatory or non-mandatory argument or a switch
     of an app.
     """
-
+    log.info('Running Model')
     app_id = request.values['app_id']
     network_id = request.values['network_id']
     scenario_name = request.values.get('scenario_name')
