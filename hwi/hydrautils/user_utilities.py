@@ -1,5 +1,5 @@
 import hydra_connector
-from HydraServer.ui.code.model import JSONObject 
+from HydraServer.lib.objects import JSONObject
 
 def get_usernames_like(username, user_id):
     """

@@ -1,7 +1,7 @@
 
 import hydra_connector as hc
 
-from HydraServer.ui.code.model import JSONObject
+from HydraServer.lib.objects import JSONObject
 
 import logging
 log = logging.getLogger(__name__)

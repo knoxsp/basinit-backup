@@ -1,5 +1,5 @@
 import hydra_connector as hc
-from HydraServer.ui.code.model import JSONObject 
+from HydraServer.lib.objects import JSONObject
 
 def create_template(template, user_id):
     return JSONObject(hc.add_template(template, user_id=user_id))
