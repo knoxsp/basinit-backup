@@ -23,6 +23,8 @@
     var apps = {{apps|tojson}} 
     var app_dict = {{app_dict|tojson}} 
 
+    var layout = {{network_layout|safe}}
+
     var img_url = "{{url_for('static', filename='img/') }}"
 
     function get_name(id)

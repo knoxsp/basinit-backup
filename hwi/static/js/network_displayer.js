@@ -141,7 +141,7 @@ var redraw_nodes = function(){
         .classed("node", true)
         .attr("id", function(d) {return 'schematicnode_'+d.id;})
         .attr('shape', function(d){
-            if (d.type.layout.shape != undefined){
+            if (d.layout.shape != undefined){
                 return d.type.layout.shape
             }else{
                 return 'circle'
@@ -151,7 +151,7 @@ var redraw_nodes = function(){
         node
         .append('path')
         .style("fill", function(d) {
-            var l = d.type.layout;
+            var l = d.layout;
             if (l.color != undefined){return l.color}else{return 'black'}
           })
 

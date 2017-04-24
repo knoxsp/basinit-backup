@@ -456,6 +456,14 @@ def go_network(network_id):
         tmpl = JSONObject({'templatetypes': []});
         type_layout_map = {}
 
+    layout = {}
+    if network.layout is not None:
+        try:
+            layout = json.loads(network.layout)
+        except:
+            log.info("Network has no layout")
+            layout = {}
+
     if network.projection:
         try:
             proj = network.projection.split(":")[1]
@@ -522,6 +530,7 @@ def go_network(network_id):
                 node_name_map=node_name_map,\
                 extents=extents,\
                 network=network,\
+                network_layout = json.dumps(layout),\
                 nodes_=nodes_,\
                 links_=links_, \
                 scenarios=json.dumps(scenario_summaries),\

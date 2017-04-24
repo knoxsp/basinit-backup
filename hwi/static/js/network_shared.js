@@ -60,10 +60,15 @@ function set_visible_nodes(){
             }
         }
         if (d.layout == undefined){
-            d.layout = {}
+            d.layout = d.type.layout
         }else{
             if (typeof(d.layout) == 'string'){
                 d.layout = JSON.parse(d.layout)
+                for (var k in d.type.layout){
+                    if (d.layout[k] == undefined){
+                        d.layout[k] =  d.type.layout[k]
+                    }
+                }
             }
         }
 
@@ -129,11 +134,11 @@ function dragended(d)
 
 var normalnode = d3.symbol()
          .size(function(d) { 
-             var height = d.type.layout.height
+             var height = d.layout.height
              if (height == undefined){
                  height = 10
              }
-             var width = d.type.layout.width
+             var width = d.layout.width
              if (width == undefined){
                  width = 10
              }
@@ -141,24 +146,24 @@ var normalnode = d3.symbol()
              return height * width; } )
          .type(function(d) { 
            if
-           (d.type.layout.shape == "circle") { return d3.symbolCircle; } else if
-           (d.type.layout.shape == "diamond") { return d3.symbolDiamond;} else if
-           (d.type.layout.shape == "cross") { return d3.symbolCross;} else if
-           (d.type.layout.shape == "triangle") { return d3.symbolTriangle;} else if
-           (d.type.layout.shape == "square") { return d3.symbolSquare;} else if
-           (d.type.layout.shape == "star") { return d3.symbolStar;} else if
-           (d.type.layout.shape == "wye") { return d3.symbolWye;} else
+           (d.layout.shape == "circle") { return d3.symbolCircle; } else if
+           (d.layout.shape == "diamond") { return d3.symbolDiamond;} else if
+           (d.layout.shape == "cross") { return d3.symbolCross;} else if
+           (d.layout.shape == "triangle") { return d3.symbolTriangle;} else if
+           (d.layout.shape == "square") { return d3.symbolSquare;} else if
+           (d.layout.shape == "star") { return d3.symbolStar;} else if
+           (d.layout.shape == "wye") { return d3.symbolWye;} else
            { return d3.symbolCircle; }
          })
 
 
 var selectednode = d3.symbol()
          .size(function(d) { 
-             var height = d.type.layout.height
+             var height = d.layout.height
              if (height == undefined){
                  height = 10
              }
-             var width = d.type.layout.width
+             var width = d.layout.width
              if (width == undefined){
                  width = 10
              }
@@ -166,13 +171,13 @@ var selectednode = d3.symbol()
              return 1.5 * (height * width); } )
          .type(function(d) { 
            if
-           (d.type.layout.shape == "circle") { return d3.symbolCircle; } else if
-           (d.type.layout.shape == "diamond") { return d3.symbolDiamond;} else if
-           (d.type.layout.shape == "cross") { return d3.symbolCross;} else if
-           (d.type.layout.shape == "triangle") { return d3.symbolTriangle;} else if
-           (d.type.layout.shape == "square") { return d3.symbolSquare;} else if
-           (d.type.layout.shape == "star") { return d3.symbolStar;} else if
-           (d.type.layout.shape == "wye") { return d3.symbolWye;} else
+           (d.layout.shape == "circle") { return d3.symbolCircle; } else if
+           (d.layout.shape == "diamond") { return d3.symbolDiamond;} else if
+           (d.layout.shape == "cross") { return d3.symbolCross;} else if
+           (d.layout.shape == "triangle") { return d3.symbolTriangle;} else if
+           (d.layout.shape == "square") { return d3.symbolSquare;} else if
+           (d.layout.shape == "star") { return d3.symbolStar;} else if
+           (d.layout.shape == "wye") { return d3.symbolWye;} else
            { return d3.symbolCircle; }
          })
 

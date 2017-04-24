@@ -23,6 +23,51 @@ var map = L.map('graph').setView([center[1], center[0]], mapzoom);
         maxZoom: 15,
         }).addTo(map);
 
+
+var myStyle = function(feature){
+    style = {
+    "fillColor": "black",
+    "color": "white",
+    "weight": 3,
+    "opacity": 0.85}
+    console.log(feature)
+   //#Look for distinguishing features of different features. Need to make this better
+    if (feature.properties.New_WRZ != undefined){
+        return style
+    }else if (feature.properties.NAME != undefined){
+        style.color = 'steelblue';
+        return style 
+    }else if (feature.properties.WRZ_NAME != undefined){
+        style.color = '#66ff33';
+        return style 
+    }
+
+    return style
+};
+
+
+for (var l in layout){
+
+    if (l.indexOf('layer') < 0){
+        continue
+    }
+    console.log('Loading layer ' + layout[l])
+    $.ajax({
+        dataType: "json",
+        url: layout[l],
+        async: false,
+        success: function(data) {
+            console.log(data)
+            if (data.crs == undefined){
+                return
+            }
+            $(data.features).each(function(key, d) {
+                L.geoJson(d, {style:myStyle}).addTo(map)
+            });
+        }
+    }).error(function() {});
+}
+
 map.on('zoomend', function() {
     Cookies.set('zoom', map.getZoom(), {path:window.location.pathname})
     var center = [map.getCenter().lng, map.getCenter().lat]
@@ -35,14 +80,14 @@ map.on('dragend', function() {
 });
            
 /* Initialize the SVG layer */
-map._initPathRoot()    
+map._initPathRoot()     // DEPRECATED
 
 //Need to update the tip from the default, probably due to the coordinate mappings
 //for leaflet
 tip.offset([-200, -200])
 
 /* We simply pick up the SVG from the map object */
-var svg = d3.select("#graph").select("svg")
+var svg = d3.select('#graph').select("svg")
             .on("click", function(d){
                 svg.selectAll(".node").each(function(d){tip.hide(d)})
                 svg.selectAll(".node path").style('stroke', "");
