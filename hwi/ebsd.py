@@ -32,6 +32,10 @@ log = logging.getLogger(__name__)
 global POLYVIS_URL
 POLYVIS_URL = app.config.get('POLYVIS_URL', 'http://polyvis.org/')
 
+
+from . import requires_login
+
+@requires_login
 @app.route('/upload_ebsd_data', methods=['POST'])
 def do_upload_ebsd_data():
     """
@@ -75,6 +79,7 @@ def do_upload_ebsd_data():
 
     return jsonify({'status': 'OK', 'message': 'Data saved successfully'})
 
+@requires_login
 @app.route('/get_ebsd_results/scenario/<scenario_id>/solution/<solution_id>')
 @app.route('/get_ebsd_results')
 def do_get_ebsd_results(scenario_id, solution_id):
@@ -539,6 +544,7 @@ def _process_data_file(data_file, network_id, scenario_id, user_id):
 
 
 
+@requires_login
 @app.route('/run_ebsd_model', methods=['POST'])
 def run_ebsd_model():
     """To run an app the following information needs to be transmitted as a json
