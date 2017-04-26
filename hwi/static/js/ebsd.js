@@ -45,8 +45,14 @@ $(document).on('click', '#load-ebsd-data-button', function(){
     }
 
     var error = function(resp){
-        r = JSON.parse(resp.responseText)
         $("#load-ebsd-data-modal i").addClass('hidden')
+        try{
+        
+            r = JSON.parse(resp.responseText)
+            error_text = r.Error
+        }catch(err){
+            error_text = resp.statusText
+        }
         $("#load-ebsd-data-modal .modal-body").prepend(
                             "<div class='alert alert-danger'>An error has occurred: "+r.Error+"</div>")
         
@@ -64,6 +70,7 @@ $(document).on('click', '#load-ebsd-data-button', function(){
         type: 'post',
         contentType: false,
         cache: false,
+        async:false,
         success: success,
         error: error
     })
