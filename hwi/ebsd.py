@@ -4,25 +4,17 @@ import os
 import copy
 import json
 from . import app
-from flask import request, jsonify, abort, session, send_from_directory, redirect
+from flask import request, jsonify, session, send_from_directory, redirect
 import datetime
-
-import os
 
 from hydrautils import scenario_utilities as scenarioutils
 from hydrautils import attr_utilities as attrutils
 from hydrautils import network_utilities as netutils
 
-from werkzeug.exceptions import InternalServerError
-
-from HydraLib.HydraException import HydraError, ResourceNotFoundError
+from HydraLib.HydraException import  ResourceNotFoundError
 from HydraServer.lib.objects import JSONObject, Dataset
 
 from . import appinterface 
-
-
-from HydraServer.db import commit_transaction, rollback_transaction
-from HydraLib import config
 
 import requests
 
@@ -565,7 +557,7 @@ def run_ebsd_model():
     scenario_name = request.values.get('scenario_name')
     network_name = request.values.get('network_name')
     scenario_id = request.values.getlist('scenario_id')
-    default_model_file =  os.path.join(os.path.expanduser('~'), 'EBSD.gms')
+    default_model_file =  os.path.join(app.config['MODEL_DIR'], 'EBSD.gms')
     model_file = os.environ.get('EBSD_MODEL', default_model_file)
 
     for s_id in scenario_id:

@@ -5,6 +5,7 @@ BASE_DIR = os.path.expanduser('~')
 UPLOAD_DIR = os.path.join(BASE_DIR, '.hydra')
 POLYVIS_URL = 'http://localhost:5000/' 
 DATA_FOLDER = os.path.join(BASE_DIR, '.hydra/data')
+MODEL_DIR = os.path.join(BASE_DIR, '.hydra', 'model')
 
 
 UPLOAD_DIR = os.path.join(DATA_FOLDER, 'uploads')
