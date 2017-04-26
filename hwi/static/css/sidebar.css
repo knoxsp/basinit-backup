@@ -156,7 +156,7 @@ text-overflow: ellipsis;
 
 .jobstatus .name{
     display: inline-block;
-    width: 109px;
+    width: 80px;
     text-overflow: ellipsis;
     overflow: hidden;
 }
