@@ -16,39 +16,15 @@ import sys
 import datetime
 import urllib2
 
-<<<<<<< HEAD:hwi/routes.py
-from hydrautils.run_hydra_app import *
-
-=======
->>>>>>> fe864fd06beecc61ae45dbda1e8c86652fe23521:routes.py
 basefolder = os.path.dirname(__file__)
 
 from HydraServer.lib.objects import JSONObject, ResourceScenario
 
 from hydrautils.app_utilities import delete_files_from_folder, create_zip_file, get_apps_properties
-<<<<<<< HEAD:hwi/routes.py
-
-import hydrautils.project_utilities as projutils
-import hydrautils.network_utilities as netutils
-import hydrautils.attr_utilities as attrutils
-import hydrautils.template_utilities as tmplutils
-import hydrautils.dataset_utilities as datasetutils
-import hydrautils.scenario_utilities as scenarioutils
-import hydrautils.user_utilities as userutils
 
 from hydrautils.export_network import export_network_to_pywr_json, export_network_to_excel, export_network_to_csv
 
 from hydrautils.import_network import import_network_from_csv_files, import_network_from_excel, import_network_from_pywr_json
-=======
-
-import hydrautils.project_utilities as projutils
-import hydrautils.network_utilities as netutils
-import hydrautils.attr_utilities as attrutils
-import hydrautils.template_utilities as tmplutils
-import hydrautils.dataset_utilities as datasetutils
-import hydrautils.scenario_utilities as scenarioutils
-import hydrautils.user_utilities as userutils
->>>>>>> fe864fd06beecc61ae45dbda1e8c86652fe23521:routes.py
 
 from . import app, appinterface, requires_login
 
@@ -91,7 +67,7 @@ def do_login():
         request.environ['beaker.session']['username'] = request.form['username']
         request.environ['beaker.session']['user_id'] = user_id
         request.environ['beaker.session'].save()
-        
+
         session['username'] = request.form['username']
         session['user_id'] = user_id
         session['session_id'] = request.environ['beaker.session'].id
@@ -501,7 +477,7 @@ def go_network(network_id):
     scenario_summaries = {}
     for s in network.scenarios:
         test = ordinal_to_timestamp(s.start_time)
-        scenobj = dict( 
+        scenobj = dict(
             start_time = str(ordinal_to_timestamp(s.start_time)) if s.start_time else '',
             end_time   = str(ordinal_to_timestamp(s.end_time)) if s.end_time else '',
             time_step  = s.time_step if s.time_step else '',
@@ -1067,7 +1043,7 @@ def do_get_resource_scenario():
     resource_attr_id = pars['resource_attr_id']
     log.info("Fetching resource scenario %s %s",resource_attr_id, scenario_id)
     user_id       = request.environ['beaker.session']['user_id']
-   
+
     rs = scenarioutils.get_resource_scenario(resource_attr_id, scenario_id, user_id)
 
     return rs.as_json()
@@ -1080,7 +1056,7 @@ def do_get_resource_scenarios():
     resource_attr_id = int(pars['resource_attr_id'])
     log.info("Fetching multiple resource scenarios %s %s",resource_attr_id, scenario_ids)
     user_id       = request.environ['beaker.session']['user_id']
-    
+
     return_rs = {}
     for scenario_id in scenario_ids:
         try:
