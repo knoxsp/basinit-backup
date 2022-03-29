@@ -81,9 +81,12 @@
     var delete_resource_url="{{url_for('do_delete_resource')}}";
     var clone_scenario_url="{{url_for('do_clone_scenario')}}";
     var get_resource_scenarios_url="{{url_for('do_get_resource_scenarios')}}";
+<<<<<<< HEAD:hwi/templates/network.html
     var upload_ebsd_data_url="{{url_for('do_upload_ebsd_data')}}";
     var get_ebsd_results_url="{{url_for('do_get_ebsd_results')}}";
     var export_to_polyvis_url = "{{url_for('do_export_to_polyvis')}}"
+=======
+>>>>>>> fe864fd06beecc61ae45dbda1e8c86652fe23521:templates/network.html
 
       </script>
 
@@ -211,8 +214,6 @@
 
 <script src="{{url_for('static', filename='js/polyvis.js')}}"></script>
 
-<script src="{{url_for('static', filename='js/ebsd.js')}}"></script>
-
 <link rel="stylesheet" type="text/css" media="screen" href="{{ url_for('static', filename='css/d3-context-menu.css') }}"/>
 <link rel="stylesheet" type="text/css" media="screen" href="{{ url_for('static', filename='css/handsontable.full.min.css') }}"/>
 <link rel="stylesheet" type="text/css" media="screen" href="{{ url_for('static', filename='css/pikaday.css') }}"/>
@@ -228,6 +229,5 @@
 {%include 'dataset_modals.html'%}
 
 {% include 'network_modals.html' %}
-{% include 'ebsd_modals.html' %}
 
 {% endblock %}

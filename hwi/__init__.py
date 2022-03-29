@@ -44,7 +44,7 @@ def requires_login(func):
             close_session()
 
             fn = func(*args,**kwargs)
-            
+
             close_session()
 
             return fn
@@ -63,14 +63,14 @@ def requires_login(func):
 
     return wrapped
 
-#For use by the admin app, as it can't use zope transactions 
+#For use by the admin app, as it can't use zope transactions
 db_url = hydraconfig.get('mysqld', 'url')
-engine = create_engine(db_url) 
+engine = create_engine(db_url)
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
                                          bind=engine))
 
-from app_manager import appmanager, appinterface 
+from app_manager import appmanager, appinterface
 app.register_blueprint(appmanager)
 
 admin = Admin(app, name='microblog', template_mode='bootstrap3')
@@ -102,8 +102,7 @@ admin.add_view(ModelView(model.RolePerm, db_session))
 admin.add_view(ModelView(model.RoleUser, db_session))
 
 app.debug = True
-from routes import * 
-from ebsd   import *
+from routes import *
 
 if __name__ == "__main__":
 
